@@ -5,9 +5,9 @@ release_id="${1:-}"
 [[ "$release_id" =~ ^[0-9a-f]{40}-[0-9]+-[0-9]+$ ]] || { echo 'Invalid release ID' >&2; exit 1; }
 staging="/tmp/picklah-deploy-$release_id"
 release="/opt/picklah/releases/$release_id"
-test -s "$staging/release.tgz"
-test -s /etc/picklah/picklah.env
-test -f /etc/systemd/system/picklah-api.service
+test -s "$staging/release.tgz" || { echo 'Missing uploaded release archive' >&2; exit 1; }
+test -s /etc/picklah/picklah.env || { echo 'Missing /etc/picklah/picklah.env: run deploy/setup-server.sh and configure the server environment first' >&2; exit 1; }
+test -f /etc/systemd/system/picklah-api.service || { echo 'Missing picklah-api.service: run deploy/setup-server.sh first' >&2; exit 1; }
 nginx -t
 install -d -m 755 /opt/picklah/releases
 mkdir -m 755 -- "$release"
