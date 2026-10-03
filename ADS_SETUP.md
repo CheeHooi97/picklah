@@ -1,6 +1,6 @@
 # PickLah Android ads
 
-Uses the same `@capacitor-community/admob` 8.1.0 plugin and serialized banner ownership pattern as Musecards. One 320×50 native banner occupies a labeled inline slot after the workspace and privacy note. The slot scrolls with the page; the native overlay is shown only when the entire slot is visible above the bottom navigation. Ads are removed during scrolling, while a text field is focused, while a sign-in dialog is open, or while the app is in the background. At widths below 320 logical pixels only the reserved slot is shown. Consent is checked before requesting ads. The website does not initialize AdMob.
+Uses the same `@capacitor-community/admob` 8.1.0 plugin and serialized banner ownership pattern as Musecards. One 320×50 native banner occupies a compact labeled slot directly below the header, visible before the wheel title. The slot scrolls with the page; the native overlay is shown only when the entire slot is visible above the bottom navigation. Ads are removed during scrolling, while a text field is focused, while templates or a sign-in dialog are open, or while the app is in the background. At widths below 320 logical pixels only the reserved slot is shown. Consent is checked before requesting ads. The website does not initialize AdMob.
 
 ## Development
 

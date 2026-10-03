@@ -40,7 +40,7 @@ export function AdBanner() {
       const margin = inlineBannerMargin(bounds, navTop, safeTop);
       const focused = document.activeElement;
       const editing = focused instanceof HTMLElement && (focused.matches("input, textarea") || focused.isContentEditable);
-      const blocked = margin === null || editing || document.querySelector("dialog[open]") !== null || document.visibilityState === "hidden" || document.documentElement.dataset.adPrivacyOpen === "true";
+      const blocked = margin === null || editing || document.querySelector("dialog[open], .template-menu") !== null || document.visibilityState === "hidden" || document.documentElement.dataset.adPrivacyOpen === "true";
       if (blocked) { release?.(); release = undefined; return; }
       // The plugin adds the Android status-bar inset to TOP_CENTER itself.
       if (release && currentMargin === margin) return;
@@ -48,7 +48,7 @@ export function AdBanner() {
       release = banner.acquire({ adId, margin: margin! });
     };
     const observer = new MutationObserver(update);
-    observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["open", "data-mobile-screen"] });
+    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["open", "data-mobile-screen"] });
     const resizeObserver = new ResizeObserver(update);
     resizeObserver.observe(document.querySelector(".page-main")!);
     update();

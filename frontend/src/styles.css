@@ -1144,9 +1144,8 @@ button:disabled { cursor: not-allowed; }
   justify-items: center;
   gap: 8px;
   width: min(100%, 400px);
-  margin: 32px auto 8px;
-  padding: 16px 0;
-  border-block: 1px solid var(--line);
+  margin: 12px auto 0;
+  padding: 0 12px;
   color: var(--muted);
   font: 11px/1.4 Arial, sans-serif;
 }
@@ -1158,4 +1157,10 @@ button:disabled { cursor: not-allowed; }
   background: #f6f3eb;
   border-radius: 8px;
   font-size: 12px;
+}
+@media (max-width: 740px) {
+  .app-shell:has(.ad-banner-placeholder) .page-main { padding-top: 16px; }
+  .app-shell:has(.ad-banner-placeholder) .page-description,
+  .app-shell:has(.ad-banner-placeholder) .shared-caption { margin-bottom: 16px; }
+  .app-shell:has(.ad-banner-placeholder) .wheel-stage { width: min(100%, 320px, 36dvh); }
 }

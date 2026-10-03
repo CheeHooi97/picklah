@@ -412,6 +412,8 @@ export function App() {
         )}
       </header>
 
+      <AdBanner />
+
       <main className="page-main">
         <h1>{draft.title || "Pick something"}</h1>
         {!sharedID && <p className="page-description">A little spin. One less decision.</p>}
@@ -502,7 +504,6 @@ export function App() {
 
         <p className="privacy-note">Your draft stays on this device. Signing in does not upload it.</p>
         {draftSaveNotice && <p className="validation-hint" role="status">{draftSaveNotice}</p>}
-        <AdBanner />
       </main>
       <nav className="mobile-workspace-nav" aria-label="Wheel and choices">
         <button type="button" aria-current={mobileScreen === "wheel" ? "page" : undefined} aria-controls="spin-wheel" onClick={() => setMobileScreen("wheel")}>
