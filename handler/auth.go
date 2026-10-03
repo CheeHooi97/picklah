@@ -70,7 +70,39 @@ func (h *Handler) Login(c echo.Context) error {
 	return h.authResponse(c, account)
 }
 func (h *Handler) AuthConfig(c echo.Context) error {
-	return c.JSON(200, map[string]bool{"googleConfigured": googleOAuthConfigured()})
+	return c.JSON(200, map[string]any{"googleConfigured": googleOAuthConfigured(), "nativeGoogleConfigured": config.GoogleOAuthClientID != "", "googleClientId": config.GoogleOAuthClientID})
+}
+
+func (h *Handler) NativeGoogleChallenge(c echo.Context) error {
+	if config.GoogleOAuthClientID == "" {
+		return authError(c, 503, "GOOGLE_UNAVAILABLE", "Google sign-in is not configured on the server.")
+	}
+	nonce, err := h.Auth.NewGoogleChallenge(c.Request().Context())
+	if err != nil {
+		return authError(c, 503, "AUTH_UNAVAILABLE", "Google sign-in is unavailable. Please try again.")
+	}
+	return c.JSON(200, map[string]string{"nonce": nonce, "clientId": config.GoogleOAuthClientID})
+}
+
+func (h *Handler) NativeGoogle(c echo.Context) error {
+	var request struct {
+		IDToken string `json:"idToken"`
+		Nonce   string `json:"nonce"`
+	}
+	if c.Bind(&request) != nil {
+		return authError(c, 400, "INVALID_REQUEST", "Invalid Google sign-in request.")
+	}
+	if config.GoogleOAuthClientID == "" {
+		return authError(c, 503, "GOOGLE_UNAVAILABLE", "Google sign-in is not configured on the server.")
+	}
+	account, err := h.Auth.NativeGoogle(c.Request().Context(), request.IDToken, request.Nonce, config.GoogleOAuthClientID)
+	if errors.Is(err, service.ErrAuthInvalid) {
+		return authError(c, 401, "GOOGLE_INVALID", "Google sign-in expired or could not be verified. Please try again.")
+	}
+	if err != nil {
+		return authError(c, 503, "AUTH_UNAVAILABLE", "Google sign-in is unavailable. Please try again.")
+	}
+	return h.authResponse(c, account)
 }
 func (h *Handler) CurrentAccount(c echo.Context) error {
 	c.Response().Header().Set("Cache-Control", "no-store")

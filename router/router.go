@@ -43,6 +43,8 @@ func SetupRoutes(h *handler.Handler, db *gorm.DB) *echo.Echo {
 		}
 	})
 	auth.GET("/config", h.AuthConfig, middleware.NewFixedWindowLimiter(30, time.Minute))
+	auth.POST("/google/native/challenge", h.NativeGoogleChallenge, middleware.NewFixedWindowLimiter(10, time.Minute))
+	auth.POST("/google/native", h.NativeGoogle, middleware.NewFixedWindowLimiter(10, time.Minute))
 	auth.GET("/oauth/google/start", h.GoogleOAuthStart, middleware.NewFixedWindowLimiter(20, time.Minute))
 	auth.GET("/oauth/google/callback", h.GoogleOAuthCallback, middleware.NewFixedWindowLimiter(20, time.Minute))
 	auth.GET("/me", h.CurrentAccount)

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
-import { authConfig, currentAccount, googleAuthURL, logout, passwordAuth, type Account } from "../api/auth";
+import { authConfig, currentAccount, googleAuthURL, logout, nativeGoogleAuth, nativeGoogleChallenge, passwordAuth, type Account } from "../api/auth";
+import { NativeGoogle } from "../platform/google";
 
 export function AccountMenu() {
   const [account, setAccount] = useState<Account | null>(null);
@@ -41,22 +42,31 @@ export function AccountMenu() {
     let active = true;
     setGoogleAvailable(false);
     setGoogleNotice("Loading Google sign-in…");
-    if (Capacitor.isNativePlatform()) {
+    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() !== "android") {
       setGoogleNotice("Google sign-in is unavailable in this app. Use your username and password.");
       return;
     }
     void authConfig().then((config) => {
       if (!active) return;
-      setGoogleAvailable(config.googleConfigured);
-      setGoogleNotice(config.googleConfigured ? "" : "Google sign-in is currently unavailable. Use your username and password.");
+      const available = Capacitor.getPlatform() === "android" ? Boolean(config.nativeGoogleConfigured && config.googleClientId) : config.googleConfigured;
+      setGoogleAvailable(available);
+      setGoogleNotice(available ? "" : "Google sign-in is currently unavailable. Update the server configuration or use your username and password.");
     }).catch(() => { if (active) setGoogleNotice("Google sign-in could not be loaded. Close and reopen this dialog to try again, or use your username and password."); });
     return () => { active = false; };
   }, [open]);
 
-  function startGoogle() {
-    if (!googleAvailable || busy) return;
-    if (Capacitor.isNativePlatform()) {
-      setNotice("Native Google sign-in needs a system-browser callback. Use username and password for now.");
+  async function startGoogle() {
+    if (!googleAvailable || busy || submitting.current) return;
+    if (Capacitor.getPlatform() === "android") {
+      submitting.current = true; setBusy(true); setNotice("");
+      try {
+        const challenge = await nativeGoogleChallenge();
+        const credential = await NativeGoogle.signIn(challenge);
+        const result = await nativeGoogleAuth(credential.idToken, challenge.nonce);
+        setAccount(result.account); setPassword(""); dialog.current?.close();
+      } catch (error) {
+        setNotice(error instanceof Error ? error.message : "Google sign-in failed. Please try again.");
+      } finally { submitting.current = false; setBusy(false); }
       return;
     }
     setBusy(true);
@@ -77,7 +87,7 @@ export function AccountMenu() {
 
   async function signOut() {
     setBusy(true); setNotice("");
-    try { await logout(); setAccount(null); }
+    try { await logout(); setAccount(null); if (Capacitor.getPlatform() === "android") await NativeGoogle.signOut().catch(() => undefined); }
     catch (error) { setNotice(error instanceof Error ? error.message : "Could not sign out."); }
     finally { setBusy(false); }
   }
@@ -106,7 +116,7 @@ export function AccountMenu() {
       </form>
       {notice && <p className="auth-error" role="alert">{notice}</p>}
       <div className="auth-divider"><span>or</span></div>
-      <button className="google-oauth-button" type="button" disabled={busy || !googleAvailable} aria-describedby={googleNotice ? "google-availability" : undefined} onClick={startGoogle}>{mode === "register" ? "Sign up with Google" : "Sign in with Google"}</button>
+      <button className="google-oauth-button" type="button" disabled={busy || !googleAvailable} aria-describedby={googleNotice ? "google-availability" : undefined} onClick={() => void startGoogle()}>{mode === "register" ? "Sign up with Google" : "Sign in with Google"}</button>
       {googleNotice && <p id="google-availability" className="auth-description" role="status">{googleNotice}</p>}
       {googleAvailable && <p className="auth-local-note">New to PickLah? Google creates your account automatically. Already joined? It signs you in.</p>}
       <p className="auth-switch">{mode === "login" ? "New here?" : "Already have an account?"} <button className="text-action" type="button" disabled={busy} onClick={() => { setMode(mode === "login" ? "register" : "login"); setNotice(""); setPassword(""); }}>{mode === "login" ? "Create an account" : "Sign in"}</button></p>

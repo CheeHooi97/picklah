@@ -12,6 +12,7 @@ func Migrate(db *gorm.DB) error {
 	models := []any{
 		&model.Account{},
 		&model.AccountSession{},
+		&model.GoogleChallenge{},
 		&model.User{},
 		&model.Admin{},
 		&model.Company{},

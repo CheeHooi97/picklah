@@ -43,7 +43,16 @@ Inspected the GitHub main branch at commit `47ec51346537de5da7b16cbec61faa571aec
 - [Backend OAuth handlers](https://github.com/CheeHooi97/musecards/blob/47ec51346537de5da7b16cbec61faa571aecc5b8/backend/handler/oauth.go) require client ID and secret, exchange a code, resolve an account, and set a session cookie.
 - [Backend config](https://github.com/CheeHooi97/musecards/blob/47ec51346537de5da7b16cbec61faa571aecc5b8/backend/config/config.go) reads GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, and GOOGLE_OAUTH_REDIRECT_URL. These names are missing from its checked-in .env.example; that does not mean the implementation works without credentials. Deployment configuration was not inspected and no Musecards secrets were copied.
 
-Native Capacitor Google login is not wired to a native OAuth plugin yet. Use password login for the current native UI; native Google needs platform client configuration and a native identity flow. Deploy web authentication and the API on the same site; cross-site cookie handling for native packaging must be configured separately.
+Android Google login uses Credential Manager through the local `PicklahGoogle` Capacitor plugin. It retrieves the public Web OAuth client ID from the backend, requests a five-minute, single-use nonce, and sends Google's ID token to the backend for verification. Android account requests use CapacitorHttp so HttpOnly server session cookies are retained by the native cookie store. Website authentication continues using the existing OAuth redirect flow. iOS Google sign-in remains unimplemented.
+
+### Android deployment
+
+1. Deploy the updated API and run `go run . migrate` when automatic migration is disabled. This adds `picklah_google_challenges`, which holds hashed, expiring sign-in nonces. Your existing `GOOGLE_OAUTH_CLIENT_ID` is reused; native token verification does not need a new server secret.
+2. In the **same Google Cloud project** as that Web client, register an **Android OAuth client** with package name `com.picklah.app` and the signing certificate SHA-1. Register the debug certificate for local APK testing and the Google Play app-signing certificate for Play releases. The Android client ID is not the server client ID: the app requests an ID token for the existing Web client.
+3. Android authentication defaults to `https://picklah.my`; `VITE_API_BASE_URL` (or `VITE_PUBLIC_URL`) can override it with another HTTPS API host. No Google client secret or separate Google frontend environment variable is required. Run `npm run cap:sync`, then rebuild and install the Android APK. Updating only the website does not update an installed app.
+4. Use a device or emulator with Google Play services. Test Google login, account state after restarting the app, logout, cancellation, and signing in with another account.
+
+`GET /v1/auth/config` returns `nativeGoogleConfigured` and the public `googleClientId`. An older backend does not provide these fields and the app leaves Google login unavailable until it is updated. `POST /v1/auth/google/native/challenge` issues a nonce; `POST /v1/auth/google/native` accepts `{idToken, nonce}` and sets the same seven-day session cookie as password login. A consumed or expired nonce cannot be reused. A failed attempt requires a fresh challenge.
 
 ## API
 
@@ -67,7 +76,7 @@ POST requests require application/json. Registration and login endpoints are rat
 
 - Stripe/RevenueCat billing and entitlement checks tied to `account.id`.
 - Password recovery, account management, and explicit Google/password account linking.
-- Native Google identity integration and native session transport.
-- End-to-end account and Google sign-in verification; only compilation and migration were performed in this change.
+- iOS Google identity integration and session transport.
+- End-to-end Google sign-in verification with the deployed API and registered Android signing certificates.
 
 Google identity verification uses an OpenID Connect verifier. Authorization codes are exchanged only by the backend, following [Google's web server OAuth guidance](https://developers.google.com/identity/protocols/oauth2/web-server). The return URL contains a result code, never a session token. The requested wheel route is retained and the existing local draft is restored on return.

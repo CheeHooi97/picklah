@@ -20,3 +20,10 @@ type AccountSession struct {
 }
 
 func (AccountSession) TableName() string { return "picklah_account_sessions" }
+
+type GoogleChallenge struct {
+	NonceHash string    `gorm:"primaryKey;size:64"`
+	ExpiresAt time.Time `gorm:"index;not null"`
+}
+
+func (GoogleChallenge) TableName() string { return "picklah_google_challenges" }

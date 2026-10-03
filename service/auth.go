@@ -41,6 +41,27 @@ func authToken() (string, error) {
 	}
 	return base64.RawURLEncoding.EncodeToString(data[:]), nil
 }
+
+func (s *AuthService) NewGoogleChallenge(ctx context.Context) (string, error) {
+	nonce, err := authToken()
+	if err != nil {
+		return "", err
+	}
+	return nonce, s.accounts.SaveGoogleChallenge(ctx, SessionHash(nonce))
+}
+
+func (s *AuthService) NativeGoogle(ctx context.Context, credential, nonce, clientID string) (*model.Account, error) {
+	if len(nonce) != 43 || credential == "" || len(credential) > 16384 {
+		return nil, ErrAuthInvalid
+	}
+	if err := s.accounts.ConsumeGoogleChallenge(ctx, SessionHash(nonce)); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrAuthInvalid
+		}
+		return nil, err
+	}
+	return s.Google(ctx, credential, nonce, clientID)
+}
 func SessionHash(token string) string {
 	sum := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(sum[:])
