@@ -6,13 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:mobile": "tsc --noEmit && vite build --mode mobile",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --experimental-strip-types --test --test-isolation=none src/features/wheel/random.test.mjs src/features/wheel/media.test.mjs",
-    "cap:sync": "npm run build && cap sync",
-    "cap:android": "npm run build && cap sync android && cap open android",
-    "cap:ios": "npm run build && cap sync ios && cap open ios"
+    "test": "node --experimental-strip-types --test --test-isolation=none src/features/wheel/random.test.mjs src/features/wheel/media.test.mjs src/platform/banner-controller.test.mjs",
+    "cap:sync": "npm run build:mobile && cap sync",
+    "cap:android": "npm run build:mobile && cap sync android && cap open android",
+    "cap:ios": "npm run build:mobile && cap sync ios && cap open ios"
   },
   "dependencies": {
+    "@capacitor-community/admob": "^8.1.0",
     "@capacitor/app": "8.1.1",
     "@capacitor/core": "8.5.1",
     "@capacitor/preferences": "8.0.1",

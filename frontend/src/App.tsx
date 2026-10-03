@@ -3,6 +3,7 @@ import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { ChoiceEditor } from "./components/ChoiceEditor";
 import { AccountMenu } from "./components/AccountMenu";
+import { AdBanner, AdPrivacyOptions } from "./components/AdBanner";
 import { ChoiceIcon } from "./components/ChoiceIcon";
 import { WheelVisual } from "./components/WheelVisual";
 import { getTemplates, getWheel, publishWheel } from "./api/wheels";
@@ -495,11 +496,13 @@ export function App() {
               </div>
             )}
             {shareNotice && <p className="action-notice" role="status">{shareNotice}</p>}
+            <AdPrivacyOptions />
           </aside>
         </div>
 
         <p className="privacy-note">Your draft stays on this device. Signing in does not upload it.</p>
         {draftSaveNotice && <p className="validation-hint" role="status">{draftSaveNotice}</p>}
+        <AdBanner />
       </main>
       <nav className="mobile-workspace-nav" aria-label="Wheel and choices">
         <button type="button" aria-current={mobileScreen === "wheel" ? "page" : undefined} aria-controls="spin-wheel" onClick={() => setMobileScreen("wheel")}>

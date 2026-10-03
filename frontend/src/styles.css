@@ -1138,3 +1138,24 @@ button:disabled { cursor: not-allowed; }
   .top-nav { gap: 0; }
   .top-nav .nav-link { padding-inline: 6px; font-size: 12px; }
 }
+
+.ad-banner-placeholder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: min(100%, 400px);
+  margin: 32px auto 8px;
+  padding: 16px 0;
+  border-block: 1px solid var(--line);
+  color: var(--muted);
+  font: 11px/1.4 Arial, sans-serif;
+}
+.ad-banner-slot {
+  display: grid;
+  place-items: center;
+  width: min(320px, 100%);
+  min-height: 50px;
+  background: #f6f3eb;
+  border-radius: 8px;
+  font-size: 12px;
+}
