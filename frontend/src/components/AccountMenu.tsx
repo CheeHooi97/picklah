@@ -96,6 +96,7 @@ export function AccountMenu() {
     {account ? <>
       <span className="account-username" title={account.displayName || account.username}>{account.displayName || account.username}</span>
       <button className="nav-link" type="button" disabled={busy} onClick={() => void signOut()}>{busy ? "Signing out…" : "Sign out"}</button>
+      <a className="nav-link" href={Capacitor.isNativePlatform() ? "/privacy/index.html" : "/privacy/"}>Privacy</a>
       {notice && <span className="account-error" role="alert">{notice}</span>}
     </> : <button className="nav-link" type="button" onClick={() => { setMode("login"); setNotice(""); setBusy(false); setOpen(true); }}>Sign in</button>}
     <dialog ref={dialog} className="auth-dialog" aria-labelledby="auth-title" onClose={() => { setOpen(false); setPassword(""); setBusy(false); }} onCancel={(event) => { if (busy) event.preventDefault(); }}>
@@ -121,6 +122,7 @@ export function AccountMenu() {
       {googleAvailable && <p className="auth-local-note">New to PickLah? Google creates your account automatically. Already joined? It signs you in.</p>}
       <p className="auth-switch">{mode === "login" ? "New here?" : "Already have an account?"} <button className="text-action" type="button" disabled={busy} onClick={() => { setMode(mode === "login" ? "register" : "login"); setNotice(""); setPassword(""); }}>{mode === "login" ? "Create an account" : "Sign in"}</button></p>
       <p className="auth-local-note">Your wheel stays on this device. Creating an account does not upload it.</p>
+      <p className="auth-local-note"><a href={Capacitor.isNativePlatform() ? "/privacy/index.html" : "/privacy/"}>Read our privacy policy</a></p>
     </dialog>
   </div>;
 }

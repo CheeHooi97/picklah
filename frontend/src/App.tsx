@@ -517,6 +517,7 @@ export function App() {
       </nav>
       <footer className="page-footer">
         <span>PickLah</span>
+        <a href={Capacitor.isNativePlatform() ? "/privacy/index.html" : "/privacy/"}>Privacy policy</a>
         <span>Cannot decide? PickLah.</span>
       </footer>
     </div>

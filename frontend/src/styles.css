@@ -1123,7 +1123,7 @@ button:disabled { cursor: not-allowed; }
   .paste-box textarea, .share-link-row input { font-size: 16px; }
   .app-shell .mobile-back-to-wheel { width: 100%; min-height: 48px; margin-top: 20px; border: 1px solid var(--line); border-radius: 12px; background: #fff; text-align: center; }
   .privacy-note { margin-top: 20px; line-height: 1.5; }
-  .app-shell .page-footer { display: none; }
+  .app-shell .page-footer { display: flex; flex-wrap: wrap; margin-bottom: calc(76px + env(safe-area-inset-bottom)); }
   .template-menu { left: 16px !important; right: 16px; top: calc(72px + env(safe-area-inset-top)) !important; width: auto !important; max-height: calc(100dvh - 180px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important; }
   .template-menu button { min-height: 64px; }
   .template-menu button small { font-size: 13px; }
