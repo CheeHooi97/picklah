@@ -1,0 +1,23 @@
+[Unit]
+Description=PickLah API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=picklah
+Group=picklah
+WorkingDirectory=/opt/picklah/current
+EnvironmentFile=/etc/picklah/picklah.env
+ExecStart=/opt/picklah/current/picklah-api
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

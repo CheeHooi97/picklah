@@ -1,0 +1,17 @@
+{
+  "name": "PickLah",
+  "short_name": "PickLah",
+  "description": "Cannot decide? PickLah.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/picklah-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

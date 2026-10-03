@@ -1,0 +1,14 @@
+dev.yaml
+.env
+.env.*
+!.env.example
+frontend/.env.*
+!frontend/.env.example
+frontend/node_modules/
+frontend/dist/
+frontend/android/.gradle/
+frontend/android/build/
+frontend/ios/Pods/
+frontend/ios/build/
+frontend/ios/DerivedData/
+storage/serviceAccountKey.json

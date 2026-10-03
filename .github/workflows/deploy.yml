@@ -1,0 +1,94 @@
+name: Build and deploy PickLah
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: picklah-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://picklah.my
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || '157.245.200.202' }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_ARCH: ${{ vars.DEPLOY_ARCH || 'amd64' }}
+      RELEASE_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Build backend
+        run: |
+          set -euo pipefail
+          [[ "$DEPLOY_ARCH" == amd64 || "$DEPLOY_ARCH" == arm64 ]]
+          mkdir -p "$RUNNER_TEMP/picklah-release/dist"
+          CGO_ENABLED=0 GOOS=linux GOARCH="$DEPLOY_ARCH" go build -trimpath -o "$RUNNER_TEMP/picklah-release/picklah-api" .
+      - name: Build website
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: ''
+          VITE_PUBLIC_URL: https://picklah.my
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: Package release
+        run: |
+          set -euo pipefail
+          cp -a frontend/dist/. "$RUNNER_TEMP/picklah-release/dist/"
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/picklah-release/REVISION"
+          tar -C "$RUNNER_TEMP/picklah-release" -czf "$RUNNER_TEMP/picklah-release.tgz" .
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_USER" && test -n "$DEPLOY_SSH_KEY" && test -n "$DEPLOY_KNOWN_HOSTS"
+          [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
+          [[ "$DEPLOY_USER" =~ ^[A-Za-z_][A-Za-z0-9_-]*$ ]]
+          [[ "$DEPLOY_PORT" =~ ^[0-9]{1,5}$ ]]
+          [[ "$RELEASE_ID" =~ ^[0-9a-f]{40}-[0-9]+-[0-9]+$ ]]
+          install -d -m 700 "$RUNNER_TEMP/picklah-ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$RUNNER_TEMP/picklah-ssh/key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$RUNNER_TEMP/picklah-ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/picklah-ssh/key"
+      - name: Publish release
+        run: |
+          set -euo pipefail
+          staging="/tmp/picklah-deploy-$RELEASE_ID"
+          target="$DEPLOY_USER@$DEPLOY_HOST"
+          ssh_options=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$RUNNER_TEMP/picklah-ssh/known_hosts" -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -i "$RUNNER_TEMP/picklah-ssh/key")
+          cleanup() { ssh "${ssh_options[@]}" -p "$DEPLOY_PORT" "$target" "rm -rf -- '$staging'" || true; }
+          trap cleanup EXIT
+          ssh "${ssh_options[@]}" -p "$DEPLOY_PORT" "$target" "mkdir -m 700 -- '$staging'"
+          scp "${ssh_options[@]}" -P "$DEPLOY_PORT" "$RUNNER_TEMP/picklah-release.tgz" "$target:$staging/release.tgz"
+          ssh "${ssh_options[@]}" -p "$DEPLOY_PORT" "$target" "sudo -n bash -s -- '$RELEASE_ID'" < deploy/publish-release.sh
+      - name: Check public deployment
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 5 --max-time 15 https://picklah.my/ -o /dev/null
+          content_type=$(curl --fail --silent --show-error --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 5 --max-time 15 https://picklah.my/v1/templates -o /dev/null -w '%{content_type}')
+          [[ "$content_type" == application/json* ]]
+      - name: Remove SSH credentials
+        if: always()
+        run: rm -f -- "$RUNNER_TEMP/picklah-ssh/key" "$RUNNER_TEMP/picklah-ssh/known_hosts"
