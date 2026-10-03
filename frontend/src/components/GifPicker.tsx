@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ClipboardEvent } from "react";
-import { imageFileSource, validGifSource } from "../features/wheel/media";
+import { imageFileSource, validGifSource, MAX_UPLOAD_BYTES } from "../features/wheel/media";
 
 export function GifPicker({ value, disabled, onChange }: { value: string; disabled: boolean; onChange: (value: string) => void }) {
   const [error, setError] = useState("");
@@ -27,24 +27,25 @@ export function GifPicker({ value, disabled, onChange }: { value: string; disabl
       const source = await imageFileSource(file);
       if (current === operation.current && !disabledRef.current) onChange(source);
     } catch (reason) {
-      if (current === operation.current) setError(reason instanceof Error ? reason.message : "Could not add this GIF.");
+      if (current === operation.current) setError(reason instanceof Error ? reason.message : "Could not add this image.");
     } finally {
       if (current === operation.current) setLoading(false);
     }
   }
 
   async function addKeyboardSource(source: string) {
-    if (source.startsWith("blob:")) {
+    if (source.startsWith("blob:") || /^data:image\//i.test(source)) {
       const current = ++operation.current;
       setLoading(true);
       setError("");
       try {
-        if (new URL(source).origin !== window.location.origin) throw new Error("Unreadable keyboard image");
+        if (source.startsWith("blob:") && new URL(source).origin !== window.location.origin) throw new Error("Unreadable keyboard image");
+        if (source.length > MAX_UPLOAD_BYTES * 1.4) throw new Error("Image too large");
         const blob = await (await fetch(source)).blob();
         const image = await imageFileSource(new File([blob], "keyboard-image", { type: blob.type }));
         if (current === operation.current && !disabledRef.current) onChange(image);
       } catch {
-        if (current === operation.current) setError("This keyboard's image could not be read. Use Choose GIF instead.");
+        if (current === operation.current) setError("This pasted image could not be read. Use Choose GIF or image instead.");
       } finally {
         if (current === operation.current) setLoading(false);
       }
@@ -67,7 +68,7 @@ export function GifPicker({ value, disabled, onChange }: { value: string; disabl
   return <div className="gif-picker">
     <span className="gif-heading">GIF or image (optional)</span>
     <label className="gif-upload">Choose GIF or image
-      <input type="file" accept="image/gif,image/png,image/jpeg,image/webp" disabled={disabled || loading} onChange={(event) => {
+      <input type="file" accept="image/*,.heic,.heif,.tif,.tiff,.avif,.bmp,.ico,.svg,.jxl" disabled={disabled || loading} onChange={(event) => {
         const file = event.currentTarget.files?.[0];
         event.currentTarget.value = "";
         if (file) void addFile(file);
@@ -87,13 +88,13 @@ export function GifPicker({ value, disabled, onChange }: { value: string; disabl
         if (validGifSource(source) && source) { setSource(source); event.currentTarget.textContent = ""; }
       }
     }} />
-    <label>Or paste a GIF link
+    <label>Or paste an image link
       <input type="text" inputMode="url" placeholder="https://…/burger.gif" maxLength={2048} value={embedded ? "" : value} disabled={disabled} onPaste={paste} onChange={(event) => setSource(event.target.value)} aria-invalid={!validGifSource(value)} />
     </label>
     {value && validGifSource(value) && <div className="gif-preview">
       <img key={value} src={value} alt="Selected section image" referrerPolicy="no-referrer" onError={() => setError("This image could not be loaded. Choose a file or try another direct image link.")} />
       <button type="button" className="text-action" onClick={() => setSource("")} disabled={disabled}>Remove image</button>
     </div>}
-    <p className="appearance-help" role="status">{loading ? "Adding image…" : error || (!validGifSource(value) ? "Use a direct HTTPS image link, or choose an image file." : "GIF, PNG, JPEG, or WebP. Up to 1 MB each, 2 MB per wheel. Keyboard support varies; choosing a file also works.")}</p>
+    <p className="appearance-help" role="status">{loading ? "Processing image…" : error || (!validGifSource(value) ? "Use a direct HTTPS image link, or choose an image file." : (embedded ? "Image added. " : "") + "Choose an image up to 20 MB, including HEIC and TIFF. Other formats depend on browser support. Large or converted images use a resized still frame; small GIFs keep their animation. Images stay on your device.")}</p>
   </div>;
 }

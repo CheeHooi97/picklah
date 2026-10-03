@@ -9,6 +9,7 @@ type WheelVisualProps = {
   rotation: number;
   winnerIndex: number | null;
   spinning: boolean;
+  onSpinEnd: () => void;
 };
 
 function point(cx: number, cy: number, radius: number, angle: number) {
@@ -36,7 +37,7 @@ function WheelIcon({ appearance, x, y, fontSize }: { appearance: WheelAppearance
     : <image href={PICKLAH_EMOJI} x={x - 18} y={y - fontSize - 28} width="36" height="36" />;
 }
 
-export function WheelVisual({ options, appearances, rotation, winnerIndex, spinning }: WheelVisualProps) {
+export function WheelVisual({ options, appearances, rotation, winnerIndex, spinning, onSpinEnd }: WheelVisualProps) {
   const count = Math.max(options.length, 1);
   const segmentAngle = 360 / count;
   const fontSize = Math.max(10, Math.min(26, segmentAngle * 0.4));
@@ -45,8 +46,10 @@ export function WheelVisual({ options, appearances, rotation, winnerIndex, spinn
   return (
     <div className="wheel-stage" aria-label={spinning ? "Wheel is spinning" : "Wheel of choices"}>
       <span className="wheel-pointer" aria-hidden="true" />
+      <div className="wheel-rotation-frame">
       <svg
-        className="wheel-rotor"
+        className={"wheel-rotor" + (spinning ? " wheel-rotor-spinning" : "")}
+        onTransitionEnd={(event) => { if (event.target === event.currentTarget && event.propertyName === "transform") onSpinEnd(); }}
         viewBox="0 0 600 600"
         style={{ "--wheel-rotation": `${rotation}deg` } as CSSProperties}
         aria-hidden="true"
@@ -93,6 +96,7 @@ export function WheelVisual({ options, appearances, rotation, winnerIndex, spinn
         <circle cx="300" cy="300" r="38" fill="#fff" />
         <image href={PICKLAH_EMOJI} x="275" y="275" width="50" height="50" />
       </svg>
+      </div>
       <span className="wheel-shadow" aria-hidden="true" />
     </div>
   );

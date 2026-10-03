@@ -35,9 +35,11 @@ Open http://localhost:5173. The Vite development server proxies `/v1` calls to `
 
 The wheel spins locally without the API. Publishing and opening shared links need a running API and database.
 
-Tap a choice's color dot to customize its section color, emoji, or GIF. Paste an image from a compatible mobile keyboard/clipboard, choose an image file, or enter a direct HTTPS image URL. GIF, PNG, JPEG, and WebP files are supported up to 1 MB each and 2 MB per wheel. Mobile keyboard support depends on the keyboard and browser; the file picker is the fallback. Attached images are stored inline in the draft and shared snapshot. The default food wheel includes food emojis such as 🍔 for Burger. Customizations are saved on the device and included in shared snapshots; existing drafts and older shared wheels remain compatible.
+Tap a choice's color dot to customize its section color, emoji, or image. Paste an image from a compatible mobile keyboard/clipboard, choose an image file, or enter a direct HTTPS image URL. Uploads accept browser-decodable formats such as GIF, PNG, JPG/JPEG, WebP, AVIF, BMP, ICO, and SVG, with local HEIC/HEIF and TIFF decoder fallbacks. Source files may be up to 20 MB. Large images and additional formats are converted locally to a PNG still frame of at most 512 pixels per side and 256 KB; small GIFs retain animation. TIFF uses the first image page. Corrupt files and unsupported codecs show an error. Stored images remain limited to 1 MB each and 2 MB per wheel. Conversion decoders load only when needed and are available offline after being cached by the PWA. Mobile keyboard support depends on the keyboard and browser; the file picker is the fallback. Attached images are stored inline in the draft and shared snapshot. The default food wheel includes food emojis such as 🍔 for Burger. Customizations are saved on the device and included in shared snapshots; existing drafts and older shared wheels remain compatible.
 
 Run the checks from their respective directories:
+
+Tick **Remove winners from the next spin** below SPIN to pick without replacement. Each winning entry is removed from the wheel when the next spin starts; duplicate labels remain separate entries. The final remaining choice can still win, after which the round is complete. **Restart round** restores every choice. Unticking the option or editing the wheel also resets the round. Elimination is local to the current session and never deletes the saved choices or changes a shared wheel.
 
 ```powershell
 go test ./...
@@ -55,6 +57,16 @@ The default food wheel includes Pan Mee 🍜, Nasi Lemak 🍛, Roti Canai 🫓, 
 - `GET /v1/wheels/:publicId` — load an active snapshot
 
 Set `PICKLAH_ALLOWED_ORIGINS` to a comma-separated list of browser and Capacitor origins for a deployment.
+
+## Search engine discovery
+
+The website includes a descriptive title, search description, canonical homepage URL, Open Graph/Twitter previews, and WebSite/WebApplication structured data. `frontend/public/robots.txt` and `frontend/public/sitemap.xml` are copied to the website root during the Vite build. The sitemap lists the public homepage; templates are in-page choices, not separate URLs. Shared wheel snapshots and unknown app paths receive a JavaScript `noindex` directive and are excluded from the sitemap.
+
+After deploying, verify `https://picklah.my/robots.txt` and `https://picklah.my/sitemap.xml`, then submit `sitemap.xml` in Google Search Console for the verified domain. Use URL Inspection to check the rendered homepage. Sitemap submission and indexing require the domain owner's Search Console access; indexing is not guaranteed. If changing domains, update the absolute URLs in `frontend/index.html`, `robots.txt`, and `sitemap.xml` as well as `VITE_PUBLIC_URL`.
+
+The app renders with JavaScript; the initial HTML includes introductory fallback content. Social previews use the existing mascot image. The Nginx template includes `X-Robots-Tag: noindex, follow` for shared wheels, a canonical www redirect, an `/index.html` redirect, and real 404 responses for unknown paths. Client metadata also updates when navigating between a shared wheel and the homepage.
+
+Existing installations must manually merge the SEO rules from `deploy/picklah.my.conf` into their active HTTPS server block, then run `sudo nginx -t` before reloading Nginx. Deployment and setup deliberately preserve existing Certbot configuration, so pushing these changes alone does not update the active Nginx rules. Do not replace a Certbot-managed site with the HTTP-only template.
 
 ## Capacitor mobile builds
 

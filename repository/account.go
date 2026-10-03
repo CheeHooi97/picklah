@@ -23,6 +23,13 @@ func (r *AccountRepository) ByGoogleSubject(ctx context.Context, subject string)
 	err := r.db.WithContext(ctx).Where("google_subject = ?", subject).First(&account).Error
 	return &account, err
 }
+func (r *AccountRepository) UpdateDisplayName(ctx context.Context, account *model.Account, name string) error {
+	if err := r.db.WithContext(ctx).Model(&model.Account{}).Where("id = ?", account.ID).Update("display_name", name).Error; err != nil {
+		return err
+	}
+	account.DisplayName = name
+	return nil
+}
 func (r *AccountRepository) SaveSession(ctx context.Context, session *model.AccountSession) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("expires_at < ?", time.Now()).Delete(&model.AccountSession{}).Error; err != nil {

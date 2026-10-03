@@ -11,6 +11,7 @@ export function AccountMenu() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [googleNotice, setGoogleNotice] = useState("");
+  const [googleAvailable, setGoogleAvailable] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const submitting = useRef(false);
 
@@ -38,19 +39,22 @@ export function AccountMenu() {
     dialog.current?.showModal();
     dialog.current?.querySelector<HTMLInputElement>("#auth-username")?.focus();
     let active = true;
+    setGoogleAvailable(false);
     setGoogleNotice("Loading Google sign-in…");
     if (Capacitor.isNativePlatform()) {
-      setGoogleNotice("Use username and password here. Native Google sign-in needs the platform OAuth configuration.");
+      setGoogleNotice("Google sign-in is unavailable in this app. Use your username and password.");
       return;
     }
     void authConfig().then((config) => {
       if (!active) return;
-      setGoogleNotice(config.googleConfigured ? "" : "Google sign-in will be available once configured.");
-    }).catch((error: unknown) => { if (active) setGoogleNotice(error instanceof Error ? error.message : "Google sign-in is unavailable."); });
+      setGoogleAvailable(config.googleConfigured);
+      setGoogleNotice(config.googleConfigured ? "" : "Google sign-in is currently unavailable. Use your username and password.");
+    }).catch(() => { if (active) setGoogleNotice("Google sign-in could not be loaded. Close and reopen this dialog to try again, or use your username and password."); });
     return () => { active = false; };
   }, [open]);
 
   function startGoogle() {
+    if (!googleAvailable || busy) return;
     if (Capacitor.isNativePlatform()) {
       setNotice("Native Google sign-in needs a system-browser callback. Use username and password for now.");
       return;
@@ -80,7 +84,7 @@ export function AccountMenu() {
 
   return <div className="account-menu">
     {account ? <>
-      <span className="account-username" title={account.username}>{account.username}</span>
+      <span className="account-username" title={account.displayName || account.username}>{account.displayName || account.username}</span>
       <button className="nav-link" type="button" disabled={busy} onClick={() => void signOut()}>{busy ? "Signing out…" : "Sign out"}</button>
       {notice && <span className="account-error" role="alert">{notice}</span>}
     </> : <button className="nav-link" type="button" onClick={() => { setMode("login"); setNotice(""); setBusy(false); setOpen(true); }}>Sign in</button>}
@@ -102,9 +106,9 @@ export function AccountMenu() {
       </form>
       {notice && <p className="auth-error" role="alert">{notice}</p>}
       <div className="auth-divider"><span>or</span></div>
-      <button className="google-oauth-button" type="button" disabled={busy} onClick={startGoogle}>{mode === "register" ? "Sign up with Google" : "Sign in with Google"}</button>
-      {googleNotice && <p className="auth-description" role="status">{googleNotice}</p>}
-      <p className="auth-local-note">New to PickLah? Google creates your account automatically. Already joined? It signs you in.</p>
+      <button className="google-oauth-button" type="button" disabled={busy || !googleAvailable} aria-describedby={googleNotice ? "google-availability" : undefined} onClick={startGoogle}>{mode === "register" ? "Sign up with Google" : "Sign in with Google"}</button>
+      {googleNotice && <p id="google-availability" className="auth-description" role="status">{googleNotice}</p>}
+      {googleAvailable && <p className="auth-local-note">New to PickLah? Google creates your account automatically. Already joined? It signs you in.</p>}
       <p className="auth-switch">{mode === "login" ? "New here?" : "Already have an account?"} <button className="text-action" type="button" disabled={busy} onClick={() => { setMode(mode === "login" ? "register" : "login"); setNotice(""); setPassword(""); }}>{mode === "login" ? "Create an account" : "Sign in"}</button></p>
       <p className="auth-local-note">Your wheel stays on this device. Creating an account does not upload it.</p>
     </dialog>

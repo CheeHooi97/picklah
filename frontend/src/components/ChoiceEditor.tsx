@@ -71,7 +71,7 @@ export function ChoiceEditor({
   return (
     <section className="editor-panel" aria-labelledby="choices-title">
       <div className="editor-heading">
-        <h2 id="choices-title">Choices</h2>
+        <h2 id="choices-title" tabIndex={-1}>Choices</h2>
         <span className="choice-count">{draft.options.length} choices</span>
       </div>
       <label className="title-label" htmlFor="wheel-title">Wheel title</label>
@@ -81,9 +81,13 @@ export function ChoiceEditor({
         type="text"
         maxLength={100}
         value={draft.title}
+        aria-invalid={!draft.title.trim() || draft.title.trim().length > 100}
+        aria-describedby={!draft.title.trim() || draft.title.trim().length > 100 ? "wheel-title-error" : undefined}
         onChange={(event) => onTitleChange(event.target.value)}
         disabled={disabled}
       />
+      {(!draft.title.trim() || draft.title.trim().length > 100) && <p id="wheel-title-error" className="field-error">{!draft.title.trim() ? "Enter a wheel title." : "Keep the title within 100 characters."}</p>}
+      {draft.options.length < 2 && <p className="field-error" role="status">Add at least two choices to spin.</p>}
       <ol className={"choice-list" + (customizing !== null ? " choice-list-expanded" : "")}>
         {draft.options.map((option, index) => (
           <li className="choice-row" key={index}>
@@ -97,6 +101,8 @@ export function ChoiceEditor({
               type="text"
               maxLength={80}
               value={option}
+              aria-invalid={!option.trim() || option.trim().length > 80}
+              aria-describedby={!option.trim() || option.trim().length > 80 ? `choice-error-${index}` : undefined}
               placeholder={`Choice ${index + 1}`}
               onChange={(event) => onOptionChange(index, event.target.value)}
               disabled={disabled}
@@ -110,6 +116,7 @@ export function ChoiceEditor({
             >
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
             </button>
+            {(!option.trim() || option.trim().length > 80) && <p id={`choice-error-${index}`} className="field-error choice-field-error">{!option.trim() ? "Enter a name for this choice or remove it." : "Keep this choice within 80 characters."}</p>}
             {customizing === index && (
               <div className="appearance-editor" id={`appearance-${index}`} ref={appearanceEditorRef}>
                 <label className="color-control">Section color

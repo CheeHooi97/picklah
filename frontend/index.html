@@ -12,13 +12,68 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#ffffff" />
-    <meta name="description" content="Cannot decide? PickLah. Spin a wheel for food, movies, games, and more." />
+    <meta name="description" content="Spin a free random picker wheel with PickLah. Decide what to eat, pick a movie or game, or add your own choices. No sign-in needed to spin." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://picklah.my/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PickLah" />
+    <meta property="og:locale" content="en_MY" />
+    <meta property="og:title" content="PickLah — Free Random Picker & Decision Wheel" />
+    <meta property="og:description" content="Cannot decide? Spin a wheel for food, movies, games, or your own choices. No sign-in needed to spin." />
+    <meta property="og:url" content="https://picklah.my/" />
+    <meta property="og:image" content="https://picklah.my/picklah-emoji.png" />
+    <meta property="og:image:alt" content="PickLah wheel mascot" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="PickLah — Free Random Picker & Decision Wheel" />
+    <meta name="twitter:description" content="Spin a wheel to decide what to eat, watch, or play. Add your own choices and let PickLah pick." />
+    <meta name="twitter:image" content="https://picklah.my/picklah-emoji.png" />
+    <meta name="twitter:image:alt" content="PickLah wheel mascot" />
+    <script type="application/ld+json" id="site-schema">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://picklah.my/#website",
+            "url": "https://picklah.my/",
+            "name": "PickLah",
+            "inLanguage": "en",
+            "description": "A random picker wheel for food, movies, games, and group choices."
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://picklah.my/#app",
+            "name": "PickLah",
+            "url": "https://picklah.my/",
+            "applicationCategory": "UtilitiesApplication",
+            "operatingSystem": "Any",
+            "browserRequirements": "Requires JavaScript",
+            "description": "Spin a random decision wheel using food, movie, and game templates or your own choices."
+          }
+        ]
+      }
+    </script>
+    <script>
+      // Shared snapshots and unknown SPA paths are not public search landing pages.
+      if (window.location.pathname !== "/" && window.location.pathname !== "/index.html") {
+        document.querySelector('meta[name="robots"]').content = "noindex, follow";
+        document.querySelector('link[rel="canonical"]').remove();
+        document.getElementById("site-schema").type = "application/json";
+      }
+    </script>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="/picklah-mark.svg" />
-    <title>PickLah — What makan?</title>
+    <title>PickLah — Free Random Picker &amp; Decision Wheel</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main>
+        <h1>PickLah — Random Picker &amp; Decision Wheel</h1>
+        <p>Cannot decide what to eat, watch, or play? PickLah helps you choose with a spin of the wheel.</p>
+        <p>Use food, movie, and game templates or add your own choices. Customize your wheel with colors, emojis, and images. Your drafts stay on your device.</p>
+        <noscript>Enable JavaScript to customize your choices and spin the wheel. No sign-in is needed to spin.</noscript>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- Cloudflare Web Analytics -->
     <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "befb9d50d4e8422c866b54d9521940d0"}'></script>

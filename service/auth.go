@@ -99,12 +99,19 @@ func (s *AuthService) Google(ctx context.Context, credential, nonce, clientID st
 	var claims struct {
 		Nonce         string `json:"nonce"`
 		EmailVerified bool   `json:"email_verified"`
+		Name          string `json:"name"`
+		GivenName     string `json:"given_name"`
 	}
 	if token.Claims(&claims) != nil || nonce == "" || claims.Nonce != nonce || !claims.EmailVerified || token.Subject == "" {
 		return nil, ErrAuthInvalid
 	}
 	account, err := s.accounts.ByGoogleSubject(ctx, token.Subject)
 	if err == nil {
+		if name := googleDisplayName(claims.Name, claims.GivenName); name != "" && name != account.DisplayName {
+			if err := s.accounts.UpdateDisplayName(ctx, account, name); err != nil {
+				return nil, err
+			}
+		}
 		return account, nil
 	}
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -115,7 +122,7 @@ func (s *AuthService) Google(ctx context.Context, credential, nonce, clientID st
 		return nil, err
 	}
 	// Google identities are separate from password accounts; never auto-link by email.
-	account = &model.Account{ID: id, Username: "google_" + SessionHash(id)[:16], GoogleSubject: &token.Subject}
+	account = &model.Account{ID: id, Username: "google_" + SessionHash(id)[:16], DisplayName: googleDisplayName(claims.Name, claims.GivenName), GoogleSubject: &token.Subject}
 	if err = s.accounts.Create(ctx, account); err != nil {
 		if existing, lookupErr := s.accounts.ByGoogleSubject(ctx, token.Subject); lookupErr == nil {
 			return existing, nil
@@ -123,6 +130,18 @@ func (s *AuthService) Google(ctx context.Context, credential, nonce, clientID st
 		return nil, err
 	}
 	return account, nil
+}
+
+func googleDisplayName(name, givenName string) string {
+	name = strings.Join(strings.Fields(name), " ")
+	if name == "" {
+		name = strings.Join(strings.Fields(givenName), " ")
+	}
+	characters := []rune(name)
+	if len(characters) > 120 {
+		return string(characters[:120])
+	}
+	return name
 }
 func (s *AuthService) NewSession(ctx context.Context, accountID string) (string, error) {
 	token, err := authToken()

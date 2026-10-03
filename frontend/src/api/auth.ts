@@ -1,4 +1,4 @@
-export type Account = { id: string; username: string };
+export type Account = { id: string; username: string; displayName?: string };
 const base = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
 async function request<T>(path: string, body?: unknown): Promise<T> {

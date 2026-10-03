@@ -47,6 +47,10 @@ Native Capacitor Google login is not wired to a native OAuth plugin yet. Use pas
 
 ## API
 
+Google accounts retain a generated internal username for uniqueness. Account responses also include `displayName` when provided by the verified Google profile, and the header displays that name. Existing Google accounts refresh their display name on their next Google login. Password accounts continue displaying their username.
+
+Deploy this change with the account schema migration (`go run . migrate`) before starting the updated API when automatic migration is disabled. This adds `display_name` to `picklah_accounts`; it does not rename accounts or change their IDs.
+
 | Method | Endpoint | Action |
 | --- | --- | --- |
 | POST | `/v1/auth/register` | `{username, password}` → account and session cookie |

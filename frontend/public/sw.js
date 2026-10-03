@@ -1,5 +1,5 @@
-const CACHE_NAME = "picklah-shell-v2";
-const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/picklah-mark.svg", "/picklah-emoji.png"];
+const CACHE_NAME = "picklah-shell-v4";
+const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/picklah-mark.svg", "/picklah-emoji.png", "/picklah-logo.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
