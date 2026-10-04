@@ -1,5 +1,5 @@
-const CACHE_NAME = "picklah-shell-v4";
-const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/picklah-mark.svg", "/picklah-emoji.png", "/picklah-logo.png"];
+const CACHE_NAME = "picklah-shell-v5";
+const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/favicon.png", "/favicon.ico", "/apple-touch-icon.png", "/icon-192.png", "/icon-512.png", "/icon-maskable-512.png", "/privacy/index.html", "/picklah-emoji.png", "/picklah-logo.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -28,7 +28,7 @@ self.addEventListener("fetch", (event) => {
         .then((response) => {
           if (response.ok) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put("/", copy));
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           }
           return response;
         })

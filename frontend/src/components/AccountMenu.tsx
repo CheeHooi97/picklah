@@ -14,7 +14,23 @@ export function AccountMenu() {
   const [googleNotice, setGoogleNotice] = useState("");
   const [googleAvailable, setGoogleAvailable] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
+  const accountDetails = useRef<HTMLDetailsElement>(null);
   const submitting = useRef(false);
+
+  useEffect(() => {
+    function dismiss(event: PointerEvent) {
+      if (event.target instanceof Node && !accountDetails.current?.contains(event.target)) accountDetails.current?.removeAttribute("open");
+    }
+    function escape(event: KeyboardEvent) {
+      if (event.key === "Escape" && accountDetails.current?.open) {
+        accountDetails.current.removeAttribute("open");
+        accountDetails.current.querySelector("summary")?.focus();
+      }
+    }
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("pointerdown", dismiss); document.removeEventListener("keydown", escape); };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -94,9 +110,17 @@ export function AccountMenu() {
 
   return <div className="account-menu">
     {account ? <>
-      <span className="account-username" title={account.displayName || account.username}>{account.displayName || account.username}</span>
-      <button className="nav-link" type="button" disabled={busy} onClick={() => void signOut()}>{busy ? "Signing out…" : "Sign out"}</button>
-      <a className="nav-link" href={Capacitor.isNativePlatform() ? "/privacy/index.html" : "/privacy/"}>Privacy</a>
+      <details className="account-disclosure" ref={accountDetails}>
+        <summary className="account-trigger" aria-label="Account options">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>
+          <svg className="account-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+        </summary>
+        <div className="account-popover">
+          <div className="account-identity"><small>Signed in as</small><strong>{account.email || account.displayName || (account.username.startsWith("google_") ? "Google account" : account.username)}</strong>{account.email && account.displayName && <small>{account.displayName}</small>}</div>
+          <a href={Capacitor.isNativePlatform() ? "/privacy/index.html" : "/privacy/"}>Privacy policy</a>
+          <button type="button" disabled={busy} onClick={() => void signOut()}>{busy ? "Signing out…" : "Sign out"}</button>
+        </div>
+      </details>
       {notice && <span className="account-error" role="alert">{notice}</span>}
     </> : <button className="nav-link" type="button" onClick={() => { setMode("login"); setNotice(""); setBusy(false); setOpen(true); }}>Sign in</button>}
     <dialog ref={dialog} className="auth-dialog" aria-labelledby="auth-title" onClose={() => { setOpen(false); setPassword(""); setBusy(false); }} onCancel={(event) => { if (busy) event.preventDefault(); }}>

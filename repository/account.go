@@ -43,11 +43,12 @@ func (r *AccountRepository) ByGoogleSubject(ctx context.Context, subject string)
 	err := r.db.WithContext(ctx).Where("google_subject = ?", subject).First(&account).Error
 	return &account, err
 }
-func (r *AccountRepository) UpdateDisplayName(ctx context.Context, account *model.Account, name string) error {
-	if err := r.db.WithContext(ctx).Model(&model.Account{}).Where("id = ?", account.ID).Update("display_name", name).Error; err != nil {
+func (r *AccountRepository) UpdateGoogleProfile(ctx context.Context, account *model.Account, name, email string) error {
+	if err := r.db.WithContext(ctx).Model(&model.Account{}).Where("id = ?", account.ID).Updates(map[string]any{"display_name": name, "email": email}).Error; err != nil {
 		return err
 	}
 	account.DisplayName = name
+	account.Email = email
 	return nil
 }
 func (r *AccountRepository) SaveSession(ctx context.Context, session *model.AccountSession) error {

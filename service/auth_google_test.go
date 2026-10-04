@@ -24,12 +24,13 @@ func TestGoogleRejectsInvalidIdentity(t *testing.T) {
 		{"wrong audience", "aud", "another-client"},
 		{"wrong nonce", "nonce", "another-attempt"},
 		{"unverified email", "email_verified", false},
+		{"missing email", "email", ""},
 		{"missing subject", "sub", ""},
 		{"expired token", "exp", time.Now().Add(-time.Hour).Unix()},
 		{"wrong issuer", "iss", "https://attacker.example"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			claims := map[string]any{"iss": "https://accounts.google.com", "aud": "web-client", "sub": "google-subject", "nonce": "server-nonce", "email_verified": true, "exp": time.Now().Add(time.Hour).Unix()}
+			claims := map[string]any{"iss": "https://accounts.google.com", "aud": "web-client", "sub": "google-subject", "nonce": "server-nonce", "email": "user@example.com", "email_verified": true, "exp": time.Now().Add(time.Hour).Unix()}
 			claims[test.field] = test.value
 			payload, _ := json.Marshal(claims)
 			token := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"RS256"}`)) + "." + base64.RawURLEncoding.EncodeToString(payload) + ".c2ln"

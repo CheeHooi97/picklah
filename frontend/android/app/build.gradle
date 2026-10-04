@@ -20,8 +20,8 @@ android {
         applicationId "com.picklah.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 9999
+        versionName "1.0.1"
         // Google's demo app ID is safe until PickLah's own AdMob app is configured.
         def configuredAdmobAppId = providers.gradleProperty('PICKLAH_ADMOB_APP_ID')
             .orElse(providers.environmentVariable('VITE_ADMOB_ANDROID_APP_ID'))

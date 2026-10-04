@@ -6,6 +6,7 @@ type Account struct {
 	ID            string    `gorm:"primaryKey;size:43" json:"id"`
 	Username      string    `gorm:"uniqueIndex;size:32;not null" json:"username"`
 	DisplayName   string    `gorm:"size:120" json:"displayName,omitempty"`
+	Email         string    `gorm:"size:320" json:"email,omitempty"`
 	PasswordHash  string    `gorm:"size:100" json:"-"`
 	GoogleSubject *string   `gorm:"uniqueIndex;size:255" json:"-"`
 	CreatedAt     time.Time `json:"-"`

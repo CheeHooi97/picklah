@@ -120,16 +120,21 @@ func (s *AuthService) Google(ctx context.Context, credential, nonce, clientID st
 	var claims struct {
 		Nonce         string `json:"nonce"`
 		EmailVerified bool   `json:"email_verified"`
+		Email         string `json:"email"`
 		Name          string `json:"name"`
 		GivenName     string `json:"given_name"`
 	}
-	if token.Claims(&claims) != nil || nonce == "" || claims.Nonce != nonce || !claims.EmailVerified || token.Subject == "" {
+	if token.Claims(&claims) != nil || nonce == "" || claims.Nonce != nonce || !claims.EmailVerified || strings.TrimSpace(claims.Email) == "" || len(claims.Email) > 320 || token.Subject == "" {
 		return nil, ErrAuthInvalid
 	}
 	account, err := s.accounts.ByGoogleSubject(ctx, token.Subject)
 	if err == nil {
-		if name := googleDisplayName(claims.Name, claims.GivenName); name != "" && name != account.DisplayName {
-			if err := s.accounts.UpdateDisplayName(ctx, account, name); err != nil {
+		name := googleDisplayName(claims.Name, claims.GivenName)
+		if name == "" {
+			name = account.DisplayName
+		}
+		if name != account.DisplayName || account.Email != strings.TrimSpace(claims.Email) {
+			if err := s.accounts.UpdateGoogleProfile(ctx, account, name, strings.TrimSpace(claims.Email)); err != nil {
 				return nil, err
 			}
 		}
@@ -143,7 +148,7 @@ func (s *AuthService) Google(ctx context.Context, credential, nonce, clientID st
 		return nil, err
 	}
 	// Google identities are separate from password accounts; never auto-link by email.
-	account = &model.Account{ID: id, Username: "google_" + SessionHash(id)[:16], DisplayName: googleDisplayName(claims.Name, claims.GivenName), GoogleSubject: &token.Subject}
+	account = &model.Account{ID: id, Username: "google_" + SessionHash(id)[:16], DisplayName: googleDisplayName(claims.Name, claims.GivenName), Email: strings.TrimSpace(claims.Email), GoogleSubject: &token.Subject}
 	if err = s.accounts.Create(ctx, account); err != nil {
 		if existing, lookupErr := s.accounts.ByGoogleSubject(ctx, token.Subject); lookupErr == nil {
 			return existing, nil

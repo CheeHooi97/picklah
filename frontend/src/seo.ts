@@ -1,4 +1,4 @@
-const HOME_TITLE = "PickLah — Free Random Picker & Decision Wheel";
+const HOME_TITLE = "Wheel Picker — Random Names & Decisions | PickLah";
 
 // The server also excludes shared routes using X-Robots-Tag. Keep the DOM
 // consistent when the SPA changes routes without requesting another HTML page.

@@ -1,5 +1,5 @@
 import { Capacitor, CapacitorHttp } from "@capacitor/core";
-export type Account = { id: string; username: string; displayName?: string };
+export type Account = { id: string; username: string; displayName?: string; email?: string };
 const base = (import.meta.env.VITE_API_BASE_URL || (Capacitor.getPlatform() === "android" ? import.meta.env.VITE_PUBLIC_URL || "https://picklah.my" : "")).replace(/\/$/, "");
 
 async function request<T>(path: string, body?: unknown): Promise<T> {

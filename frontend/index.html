@@ -12,19 +12,19 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#ffffff" />
-    <meta name="description" content="Spin a free random picker wheel with PickLah. Decide what to eat, pick a movie or game, or add your own choices. No sign-in needed to spin." />
+    <meta name="description" content="Use PickLah's free wheel picker to choose names, food, activities or tasks. Add your choices, spin the wheel and pick without repeats. No sign-in needed." />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://picklah.my/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="PickLah" />
     <meta property="og:locale" content="en_MY" />
-    <meta property="og:title" content="PickLah — Free Random Picker & Decision Wheel" />
+    <meta property="og:title" content="Wheel Picker — Random Names & Decisions | PickLah" />
     <meta property="og:description" content="Cannot decide? Spin a wheel for food, movies, games, or your own choices. No sign-in needed to spin." />
     <meta property="og:url" content="https://picklah.my/" />
     <meta property="og:image" content="https://picklah.my/picklah-emoji.png" />
     <meta property="og:image:alt" content="PickLah wheel mascot" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="PickLah — Free Random Picker & Decision Wheel" />
+    <meta name="twitter:title" content="Wheel Picker — Random Names & Decisions | PickLah" />
     <meta name="twitter:description" content="Spin a wheel to decide what to eat, watch, or play. Add your own choices and let PickLah pick." />
     <meta name="twitter:image" content="https://picklah.my/picklah-emoji.png" />
     <meta name="twitter:image:alt" content="PickLah wheel mascot" />
@@ -62,8 +62,10 @@
       }
     </script>
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" type="image/svg+xml" href="/picklah-mark.svg" />
-    <title>PickLah — Free Random Picker &amp; Decision Wheel</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48 64x64" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <title>Wheel Picker — Random Names &amp; Decisions | PickLah</title>
   </head>
   <body>
     <div id="root">
@@ -74,6 +76,16 @@
         <noscript>Enable JavaScript to customize your choices and spin the wheel. No sign-in is needed to spin.</noscript>
       </main>
     </div>
+    <section class="wheel-guide" id="wheel-guide" aria-labelledby="wheel-guide-title">
+      <h2 id="wheel-guide-title">A wheel picker for everyday decisions</h2>
+      <p>PickLah is a random picker wheel: add the choices you are considering, then spin to select one. Use it as a random name picker for a group, a food wheel when you cannot decide what to eat, or a decision wheel for movies, games and tasks.</p>
+      <h3>How to use the picker wheel</h3>
+      <ol><li>Open <strong>Choices</strong> and add one option per entry. You can type names, paste a list, or import the first column of a CSV or Excel file.</li><li>Give your wheel a title and adjust its colours, emojis or images.</li><li>Return to <strong>Wheel</strong> and tap <strong>Spin</strong> to pick a result.</li><li>To pick a sequence without repeats, enable <strong>Remove winners from the next spin</strong>. Restart the round to include everyone again.</li></ol>
+      <p><a href="/guides/wheel-picker/">Read the wheel picker guide</a> for name picking, food decisions and choosing without repeats.</p>
+      <h3>Do I need an account?</h3><p>No. You can edit and spin without signing in. Your draft is saved on this device; signing in does not upload it.</p>
+      <h3>Can the same choice win twice?</h3><p>Yes, by default every choice stays in the wheel. Turn on the remove-winners option to pick without replacement. Two entries with the same name are still two separate choices.</p>
+      <h3>Can I use it on my phone?</h3><p>Yes. The website works on phones, tablets and computers. On a phone, use the Wheel and Choices tabs to switch between spinning and editing.</p>
+    </section>
     <script type="module" src="/src/main.tsx"></script>
     <!-- Cloudflare Web Analytics -->
     <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "befb9d50d4e8422c866b54d9521940d0"}'></script>
