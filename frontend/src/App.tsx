@@ -14,7 +14,8 @@ import { embeddedBytes, MAX_WHEEL_IMAGE_BYTES } from "./features/wheel/media";
 import { loadDraft, saveDraft } from "./features/wheel/storage";
 import type { WheelAppearance, WheelDraft, WheelTemplate } from "./features/wheel/types";
 import { copyText, shareLink } from "./platform/share";
-import { updatePageSEO } from "./seo";
+import { isFoodPage, updatePageSEO } from "./seo";
+import { trackWheelEvent } from "./analytics";
 
 function publicIDFromPath(pathname: string): string | null {
   const match = pathname.match(/^\/w\/([A-Za-z0-9_-]{22})\/?$/);
@@ -40,6 +41,8 @@ function ResultIcon({ appearance }: { appearance: WheelAppearance }) {
 }
 
 export function App() {
+  const foodPage = useRef(!Capacitor.isNativePlatform() && isFoodPage(window.location.pathname)).current;
+  const editorPath = foodPage ? "/food-wheel/" : "/";
   const initialSharedID = useRef(publicIDFromPath(window.location.pathname)).current;
   const [draft, setDraft] = useState<WheelDraft>(defaultDraft);
   const [availableTemplates, setAvailableTemplates] = useState<WheelTemplate[]>(starterTemplates);
@@ -65,6 +68,7 @@ export function App() {
   const spinTimer = useRef<number | null>(null);
   const pendingSpin = useRef<{ winner: number; rotation: number; deadline: number } | null>(null);
   const sharingRef = useRef(false);
+  const firstSpinTracked = useRef(false);
   const headerRef = useRef<HTMLElement>(null);
   const templateButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -118,7 +122,10 @@ export function App() {
     let active = true;
     void loadDraft().then((saved) => {
       if (!active) return;
-      if (!initialSharedID && saved) setDraft(saved);
+      if (!initialSharedID && saved) {
+        setDraft(saved);
+        if (foodPage && saved.templateKey !== defaultDraft.templateKey) setPageNotice("Your saved wheel is ready. Use Malaysian food choices below to start a food wheel, or keep your current choices.");
+      }
       setReady(true);
     });
     void getTemplates().then((items) => {
@@ -128,7 +135,7 @@ export function App() {
       active = false;
       if (spinTimer.current !== null) window.clearTimeout(spinTimer.current);
     };
-  }, [initialSharedID]);
+  }, [initialSharedID, foodPage]);
 
   useEffect(() => {
     if (import.meta.env.PROD && !Capacitor.isNativePlatform() && "serviceWorker" in navigator) {
@@ -220,7 +227,7 @@ export function App() {
     setExcludedChoices([]);
     setRotation(0);
     if (sharedID) {
-      window.history.replaceState({}, "", "/");
+      window.history.replaceState({}, "", editorPath);
       setSharedReadOnly(false);
       setSharedID(null);
     }
@@ -242,7 +249,7 @@ export function App() {
     setExcludedChoices([]);
     setRotation(0);
     setPreviousWheel({ draft, sharedID, sharedReadOnly, shareURL });
-    window.history.replaceState({}, "", "/");
+    window.history.replaceState({}, "", editorPath);
     setSharedReadOnly(false);
     setSharedID(null);
     setRemoteError("");
@@ -257,7 +264,7 @@ export function App() {
     if (!previousWheel || spinning || sharing) return;
     setExcludedChoices([]);
     setRotation(0);
-    window.history.replaceState({}, "", previousWheel.sharedID ? "/w/" + previousWheel.sharedID : "/");
+    window.history.replaceState({}, "", previousWheel.sharedID ? "/w/" + previousWheel.sharedID : editorPath);
     setDraft(previousWheel.draft);
     setSharedID(previousWheel.sharedID);
     setSharedReadOnly(previousWheel.sharedReadOnly);
@@ -270,7 +277,7 @@ export function App() {
   }
 
   function makeCopy() {
-    window.history.replaceState({}, "", "/");
+    window.history.replaceState({}, "", editorPath);
     setSharedReadOnly(false);
     setSharedID(null);
     setShareURL("");
@@ -298,6 +305,10 @@ export function App() {
 
   function spin() {
     if (!canSpin || pendingSpin.current) return;
+    if (!firstSpinTracked.current) {
+      trackWheelEvent("first_spin", sharedID ? "shared" : foodPage ? "food" : "home");
+      firstSpinTracked.current = true;
+    }
     const selectedSegment = randomIndex(nextSpinIndexes.length);
     const selected = nextSpinIndexes[selectedSegment];
     if (removeWinners && winner !== null) setExcludedChoices((current) => [...current, winner]);
@@ -415,8 +426,9 @@ export function App() {
       <AdBanner />
 
       <main className="page-main">
-        <h1>{draft.title || "Pick something"}</h1>
-        {!sharedID && <p className="page-description">A little spin. One less decision.</p>}
+        {foodPage && <div className="food-intro"><h1>Cannot decide what to eat? Spin a food wheel</h1><p>Edit your shortlist and spin to choose lunch. Your saved choices stay until you apply a template.</p><button className="text-action" type="button" onClick={() => selectTemplate(starterTemplates[0])} disabled={!ready || spinning || sharing}>Use Malaysian food choices</button></div>}
+        {foodPage ? <h2 className="food-wheel-title">{draft.title || "Pick something"}</h2> : <h1>{draft.title || "Pick something"}</h1>}
+        {!sharedID && !foodPage && <p className="page-description">A little spin. One less decision.</p>}
         {sharedID && <p className="shared-caption">A shared wheel. Everyone gets their own spin.</p>}
         {pageNotice && <div className="draft-notice"><span role="status">{pageNotice}</span>{previousWheel && <button className="text-action" type="button" onClick={undoReplacement} disabled={spinning || sharing}>Undo</button>}</div>}
         {remoteError && (
@@ -516,6 +528,7 @@ export function App() {
         </button>
       </nav>
       <footer className="page-footer">
+        {!Capacitor.isNativePlatform() && <><a href="/food-wheel/">Food wheel</a><a href="/guides/wheel-picker/">Wheel picker guide</a></>}
         <span>PickLah</span>
         <a href={Capacitor.isNativePlatform() ? "/privacy/index.html" : "/privacy/"}>Privacy policy</a>
         <span>Cannot decide? PickLah.</span>

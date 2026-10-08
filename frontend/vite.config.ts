@@ -1,7 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  build: { rollupOptions: { input: mode === "mobile" ? "index.html" : ["index.html", "food-wheel/index.html"] } },
   plugins: [react(), {
     name: "privacy-page-route",
     configureServer(server) {
@@ -26,4 +27,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

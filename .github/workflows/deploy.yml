@@ -89,6 +89,8 @@ jobs:
           curl --fail --silent --show-error --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 5 --max-time 15 https://picklah.my/ -o /dev/null
           content_type=$(curl --fail --silent --show-error --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 5 --max-time 15 https://picklah.my/v1/templates -o /dev/null -w '%{content_type}')
           [[ "$content_type" == application/json* ]]
+      - name: Check public SEO routes
+        run: bash deploy/smoke-seo.sh https://picklah.my
       - name: Remove SSH credentials
         if: always()
         run: rm -f -- "$RUNNER_TEMP/picklah-ssh/key" "$RUNNER_TEMP/picklah-ssh/known_hosts"

@@ -1,5 +1,5 @@
-const CACHE_NAME = "picklah-shell-v5";
-const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/favicon.png", "/favicon.ico", "/apple-touch-icon.png", "/icon-192.png", "/icon-512.png", "/icon-maskable-512.png", "/privacy/index.html", "/picklah-emoji.png", "/picklah-logo.png"];
+const CACHE_NAME = "picklah-shell-v6";
+const APP_SHELL = ["/", "/index.html", "/food-wheel/", "/guides/wheel-picker/", "/manifest.webmanifest", "/favicon.png", "/favicon.ico", "/apple-touch-icon.png", "/icon-192.png", "/icon-512.png", "/icon-maskable-512.png", "/privacy/", "/picklah-emoji.png", "/picklah-logo.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -32,7 +32,7 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(async () => (await caches.match(request)) || (await caches.match("/index.html")) || Response.error()),
+        .catch(async () => (await caches.match(request)) || (url.pathname === "/" || url.pathname.startsWith("/w/") ? await caches.match("/index.html") : null) || Response.error()),
     );
     return;
   }
